@@ -10,16 +10,16 @@ import com.example.application.api.productrenaming.ProductRenameInput;
 import com.example.application.api.productrenaming.ProductRenameOutput;
 import com.example.application.gateways.ProductRepository;
 import com.example.domain.model.Product;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
 
-@Service
 public class ProductService implements ProductServiceApi {
-    @Autowired
-    private ProductRepository repository;
+    private final ProductRepository repository;
+
+    public ProductService(ProductRepository repository) {
+        this.repository = repository;
+    }
 
     @Override
     public ProductCreationOuput createProduct(ProductCreationInput productInput) {
