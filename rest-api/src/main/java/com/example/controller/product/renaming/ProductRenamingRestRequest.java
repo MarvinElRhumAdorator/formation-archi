@@ -1,18 +1,13 @@
-package com.example.application;
-
+package com.example.controller.product.renaming;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-public class ProductDto {
+public class ProductRenamingRestRequest {
     private String id;
     private String name;
-    private Long code;
-    private String description;
-    private String createdAt;
-
 }

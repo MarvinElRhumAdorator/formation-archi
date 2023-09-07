@@ -1,13 +1,17 @@
 package com.example.application.api;
 
-import com.example.application.ProductDto;
+import com.example.application.api.productcreation.ProductCreationInput;
+import com.example.application.api.productcreation.ProductCreationOuput;
+import com.example.application.api.productquery.ProductFoundOutput;
+import com.example.application.api.productrenaming.ProductRenameInput;
+import com.example.application.api.productrenaming.ProductRenameOutput;
 
 import java.util.List;
 
 public interface ProductServiceApi {
-    ProductDto createProduct(ProductDto request);
+    ProductCreationOuput createProduct(ProductCreationInput productCreationInput);
 
-    ProductDto renameProduct(ProductDto request);
+    ProductRenameOutput renameProduct(ProductRenameInput productRenameInput);
 
-    List<ProductDto> findAllProducts();
+    List<ProductFoundOutput> findAllProducts();
 }

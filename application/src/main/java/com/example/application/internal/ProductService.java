@@ -2,8 +2,12 @@ package com.example.application.internal;
 
 
 import com.example.application.DateUtils;
-import com.example.application.ProductDto;
 import com.example.application.api.ProductServiceApi;
+import com.example.application.api.productcreation.ProductCreationInput;
+import com.example.application.api.productcreation.ProductCreationOuput;
+import com.example.application.api.productquery.ProductFoundOutput;
+import com.example.application.api.productrenaming.ProductRenameInput;
+import com.example.application.api.productrenaming.ProductRenameOutput;
 import com.example.application.gateways.ProductRepository;
 import com.example.domain.model.Product;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,55 +22,72 @@ public class ProductService implements ProductServiceApi {
     private ProductRepository repository;
 
     @Override
-    public ProductDto createProduct(ProductDto request) {
-        long productCode = request.getCode();
+    public ProductCreationOuput createProduct(ProductCreationInput productInput) {
+        long productCode = productInput.getCode();
         if (repository.existsProductWithCode(productCode)) {
             throw new RuntimeException("already existing" + productCode);
         }
-        String name = request.getName();
+        String name = productInput.getName();
 
         if (name == null || name.length() < 5) {
             throw new RuntimeException("invalid name");
         }
-        Product product = new Product(null, request.getName(), request.getDescription(), productCode, Instant.now().toEpochMilli());
+        Product product = new Product(null, productInput.getName(), productInput.getDescription(), productCode, Instant.now().toEpochMilli());
 
         Product createdProduct = repository.registerNew(product);
 
-        return toDto(createdProduct);
+        return toProductCreationOuput(createdProduct);
     }
 
     @Override
-    public ProductDto renameProduct(ProductDto request) {
-        String productId = request.getId();
+    public ProductRenameOutput renameProduct(ProductRenameInput productRenameInput) {
+
+        String name = productRenameInput.getName();
+
+        if (name == null || name.length() < 5) {
+            throw new RuntimeException("invalid name");
+        }
+
+        String productId = productRenameInput.getId();
 
         Product productToRename = repository.getProduct(productId)
                 .orElseThrow(() -> new RuntimeException("not existing " + productId));
 
-        String name = request.getName();
-
-        if (name == null || name.length() < 5) {
-            throw new RuntimeException("invalid name");
-        }
-
-        productToRename.setName(request.getName());
+        productToRename.setName(productRenameInput.getName());
 
         repository.updateProduct(productToRename);
 
-        return toDto(productToRename);
+        return toProductRenameOutput(productToRename);
+    }
+
+    private ProductRenameOutput toProductRenameOutput(Product productToRename) {
+        return new ProductRenameOutput(
+                productToRename.getId(),
+                productToRename.getName(),
+                productToRename.getDescription(),
+                productToRename.getCode());
     }
 
     @Override
-    public List<ProductDto> findAllProducts() {
-        return repository.getAllProducts().stream().map(ProductService::toDto).toList();
+    public List<ProductFoundOutput> findAllProducts() {
+        return repository.getAllProducts().stream().map(ProductService::toProductFoundOutput).toList();
     }
 
-    private static ProductDto toDto(Product createdProduct) {
-        return new ProductDto(
-                createdProduct.getId(),
+    private static ProductFoundOutput toProductFoundOutput(Product productFound) {
+        return new ProductFoundOutput(
+                productFound.getId(),
+                productFound.getName(),
+                productFound.getDescription(),
+                productFound.getCode(),
+                DateUtils.dateToString(productFound.getCreatedAt()));
+    }
+
+
+    private ProductCreationOuput toProductCreationOuput(Product createdProduct) {
+        return new ProductCreationOuput(createdProduct.getId(),
                 createdProduct.getName(),
-                createdProduct.getCode(),
                 createdProduct.getDescription(),
+                createdProduct.getCode(),
                 DateUtils.dateToString(createdProduct.getCreatedAt()));
     }
-
 }
