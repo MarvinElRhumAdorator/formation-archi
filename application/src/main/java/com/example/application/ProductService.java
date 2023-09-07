@@ -1,8 +1,8 @@
 package com.example.application;
 
 
+import com.example.application.gateways.ProductRepository;
 import com.example.domain.model.Product;
-import com.example.repositories.SpringJpaProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,11 +12,11 @@ import java.util.List;
 @Service
 public class ProductService {
     @Autowired
-    private SpringJpaProductRepository repository;
+    private ProductRepository repository;
 
     public ProductDto createProduct(ProductDto request) {
         long productCode = request.getCode();
-        if (repository.existsByCode(productCode)) {
+        if (repository.existsProductWithCode(productCode)) {
             throw new RuntimeException("already existing" + productCode);
         }
         String name = request.getName();
@@ -26,7 +26,7 @@ public class ProductService {
         }
         Product product = new Product(null, request.getName(), request.getDescription(), productCode, Instant.now().toEpochMilli());
 
-        Product createdProduct = repository.save(product);
+        Product createdProduct = repository.registerNew(product);
 
         return toDto(createdProduct);
     }
@@ -34,7 +34,7 @@ public class ProductService {
     public ProductDto renameProduct(ProductDto request) {
         String productId = request.getId();
 
-        Product productToRename = repository.findById(productId)
+        Product productToRename = repository.getProduct(productId)
                 .orElseThrow(() -> new RuntimeException("not existing " + productId));
 
         String name = request.getName();
@@ -45,13 +45,13 @@ public class ProductService {
 
         productToRename.setName(request.getName());
 
-        repository.save(productToRename);
+        repository.updateProduct(productToRename);
 
         return toDto(productToRename);
     }
 
     public List<ProductDto> findAllProducts() {
-        return repository.findAll().stream().map(ProductService::toDto).toList();
+        return repository.getAllProducts().stream().map(ProductService::toDto).toList();
     }
 
     private static ProductDto toDto(Product createdProduct) {
