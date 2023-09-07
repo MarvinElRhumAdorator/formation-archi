@@ -1,7 +1,7 @@
 package com.example.controller;
 
 import com.example.application.ProductDto;
-import com.example.application.ProductService;
+import com.example.application.api.ProductServiceApi;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -14,22 +14,22 @@ import java.util.List;
 public class ProductController {
 
     @Autowired
-    private ProductService productService;
+    private ProductServiceApi productServiceApi;
 
     @PostMapping
     public ProductDto create(@RequestBody ProductDto request) {
         log.info("in controller");
-        return this.productService.createProduct(request);
+        return this.productServiceApi.createProduct(request);
     }
 
     @PatchMapping
     public ProductDto rename(@RequestBody ProductDto request) {
-        return this.productService.renameProduct(request);
+        return this.productServiceApi.renameProduct(request);
     }
 
     @GetMapping
     public List<ProductDto> findProducts() {
-        return productService.findAllProducts();
+        return productServiceApi.findAllProducts();
     }
 }
 

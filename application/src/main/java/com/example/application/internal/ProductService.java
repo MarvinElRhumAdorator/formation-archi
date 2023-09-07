@@ -1,6 +1,9 @@
-package com.example.application;
+package com.example.application.internal;
 
 
+import com.example.application.DateUtils;
+import com.example.application.ProductDto;
+import com.example.application.api.ProductServiceApi;
 import com.example.application.gateways.ProductRepository;
 import com.example.domain.model.Product;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,10 +13,11 @@ import java.time.Instant;
 import java.util.List;
 
 @Service
-public class ProductService {
+public class ProductService implements ProductServiceApi {
     @Autowired
     private ProductRepository repository;
 
+    @Override
     public ProductDto createProduct(ProductDto request) {
         long productCode = request.getCode();
         if (repository.existsProductWithCode(productCode)) {
@@ -31,6 +35,7 @@ public class ProductService {
         return toDto(createdProduct);
     }
 
+    @Override
     public ProductDto renameProduct(ProductDto request) {
         String productId = request.getId();
 
@@ -50,6 +55,7 @@ public class ProductService {
         return toDto(productToRename);
     }
 
+    @Override
     public List<ProductDto> findAllProducts() {
         return repository.getAllProducts().stream().map(ProductService::toDto).toList();
     }
