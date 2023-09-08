@@ -9,6 +9,9 @@ import com.example.application.api.productquery.ProductFoundOutput;
 import com.example.application.api.productrenaming.ProductRenameInput;
 import com.example.application.api.productrenaming.ProductRenameOutput;
 import com.example.application.gateways.ProductRepository;
+import com.example.domain.exception.AlreadyExistingProductException;
+import com.example.domain.exception.NonExistingProductException;
+import com.example.domain.factories.ProductFactory;
 import com.example.domain.model.Product;
 
 import java.time.Instant;
@@ -16,23 +19,21 @@ import java.util.List;
 
 public class ProductService implements ProductServiceApi {
     private final ProductRepository repository;
+    private final ProductFactory productFactory;
 
-    public ProductService(ProductRepository repository) {
+    public ProductService(ProductRepository repository, ProductFactory productFactory) {
         this.repository = repository;
+        this.productFactory = productFactory;
     }
 
     @Override
     public ProductCreationOuput createProduct(ProductCreationInput productInput) {
         long productCode = productInput.getCode();
         if (repository.existsProductWithCode(productCode)) {
-            throw new RuntimeException("already existing" + productCode);
+            throw new AlreadyExistingProductException(productCode);
         }
-        String name = productInput.getName();
 
-        if (name == null || name.length() < 5) {
-            throw new RuntimeException("invalid name");
-        }
-        Product product = new Product(null, productInput.getName(), productInput.getDescription(), productCode, Instant.now().toEpochMilli());
+        Product product =  productFactory.create(productInput.getName(), productInput.getDescription(), productCode);
 
         Product createdProduct = repository.registerNew(product);
 
@@ -42,16 +43,11 @@ public class ProductService implements ProductServiceApi {
     @Override
     public ProductRenameOutput renameProduct(ProductRenameInput productRenameInput) {
 
-        String name = productRenameInput.getName();
-
-        if (name == null || name.length() < 5) {
-            throw new RuntimeException("invalid name");
-        }
 
         String productId = productRenameInput.getId();
 
         Product productToRename = repository.getProduct(productId)
-                .orElseThrow(() -> new RuntimeException("not existing " + productId));
+                .orElseThrow(() -> new NonExistingProductException(productId));
 
         productToRename.setName(productRenameInput.getName());
 
